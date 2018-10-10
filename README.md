@@ -121,7 +121,7 @@ var defaults = {
 ```
 Version
 -----
-**smart-cart 3.0.2**
+**smart-cart 3.0.3**
 
 License
 ----

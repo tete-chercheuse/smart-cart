@@ -1,5 +1,5 @@
 /*!
- * jQuery Smart Cart v3.0.2
+ * jQuery Smart Cart v3.0.3
  * The smart interactive jQuery Shopping Cart plugin with PayPal payment support
  * 
  * Licensed under the terms of the MIT License
