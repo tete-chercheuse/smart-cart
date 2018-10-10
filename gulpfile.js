@@ -1,14 +1,16 @@
-var gulp = require('gulp'),
-    jshint = require('gulp-jshint'),
-    rename = require('gulp-rename'),
-    uglify = require('gulp-uglify'),
-    babel = require("gulp-babel"),
-    postcss = require('gulp-postcss'),
-    cleanCSS = require('gulp-clean-css'),
-    cssbeautify = require('gulp-cssbeautify'),
+var gulp         = require('gulp'),
+    jshint       = require('gulp-jshint'),
+    rename       = require('gulp-rename'),
+    uglify       = require('gulp-uglify'),
+    babel        = require("gulp-babel"),
+    postcss      = require('gulp-postcss'),
+    cleanCSS     = require('gulp-clean-css'),
+    cssbeautify  = require('gulp-cssbeautify'),
     autoprefixer = require('autoprefixer'),
-    karma = require('karma'),
-    del = require('del');
+    karma        = require('karma'),
+    del          = require('del'),
+    browserSync  = require('browser-sync').create(),
+    path         = require('path');
 
 // Source files
 var SRC_JS = 'src/js/*.js';
@@ -22,42 +24,42 @@ var DEST_CSS = 'dist/css';
 // Lint JS
 gulp.task('lint', function() {
     return gulp.src(SRC_JS)
-            .pipe(jshint())
-            .pipe(jshint.reporter('default'))
-            .pipe(jshint.reporter('fail'));
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(jshint.reporter('fail'));
 });
 
 // Build JS
 gulp.task('build:js', ['clean:js', 'lint'], function() {
     return gulp.src(SRC_JS)
-            .pipe(babel())
-            .pipe(gulp.dest(DEST_JS))
-            .pipe(uglify({preserveComments:'license'}))
-            .pipe(rename({suffix: '.min'}))
-            .pipe(gulp.dest(DEST_JS));
+        .pipe(babel())
+        .pipe(gulp.dest(DEST_JS))
+        .pipe(uglify({ preserveComments: 'license' }))
+        .pipe(rename({ suffix: '.min' }))
+        .pipe(gulp.dest(DEST_JS))
 });
 
 // CSS TASKS
-gulp.task('build:css', ['clean:css'], function () {
+gulp.task('build:css', ['clean:css'], function() {
     return gulp.src(SRC_CSS)
-            .pipe(postcss( [autoprefixer({browsers: ['last 10 versions']})] ))
-            .pipe(cssbeautify({ autosemicolon: true }))
-            .pipe(gulp.dest(DEST_CSS))
-            .pipe(cleanCSS({compatibility: 'ie8'}))
-            .pipe(rename({suffix: '.min'}))
-            .pipe(gulp.dest(DEST_CSS));
+        .pipe(postcss([autoprefixer({ browsers: ['last 10 versions'] })]))
+        .pipe(cssbeautify({ autosemicolon: true }))
+        .pipe(gulp.dest(DEST_CSS))
+        .pipe(cleanCSS({ compatibility: 'ie8' }))
+        .pipe(rename({ suffix: '.min' }))
+        .pipe(gulp.dest(DEST_CSS));
 });
 
 // CLEAN files
-gulp.task('clean', function () {
-    gulp.start( 'clean:js', 'clean:css');
+gulp.task('clean', function() {
+    gulp.start('clean:js', 'clean:css');
 });
 
-gulp.task('clean:js', function () {
+gulp.task('clean:js', function() {
     return del([DEST_JS]);
 });
 
-gulp.task('clean:css', function () {
+gulp.task('clean:css', function() {
     return del([DEST_CSS]);
 });
 
@@ -68,16 +70,28 @@ gulp.task('watch', function() {
 });
 
 // TEST
-gulp.task('test', function (done) {
+gulp.task('test', function(done) {
     new karma.Server({
-      configFile: __dirname + '/karma.conf.js',
-      singleRun: true
+        configFile: __dirname + '/karma.conf.js',
+        singleRun:  true
     }, function() {
         done();
     }).start();
 });
 
+gulp.task('browser-sync', ['watch'], function() {
+    browserSync.init({
+        server: {
+            baseDir: "./"
+        }
+    });
+
+    gulp.watch("./examples/**/*").on("change", browserSync.reload);
+    gulp.watch("./src/**/*").on("change", browserSync.reload);
+    gulp.watch("./dist/**/*").on("change", browserSync.reload);
+});
+
 // DEFAULT task
 gulp.task('default', function() {
-    gulp.start( 'build:js', 'build:css' );
+    gulp.start('build:js', 'build:css');
 });

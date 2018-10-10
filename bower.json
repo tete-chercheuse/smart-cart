@@ -1,15 +1,8 @@
 {
     "name": "smart-cart",
-    "version": "v3.0.1",
-    "homepage": "http://techlaboratory.net/smartcart",
-    "authors": [
-        "Dipu Raj <hello@techlaboratory.net>"
-    ],
+    "version": "3.0.2",
     "description": "The smart interactive jQuery Shopping Cart plugin with PayPal payment support",
-    "main": [
-        "./dist/css/smart_cart.css",
-        "./dist/js/jquery.smartCart.js"
-    ],
+    "main": "./dist/js/smart-cart.js",
     "keywords": [
         "jquery",
         "cart",
@@ -20,8 +13,7 @@
         "jquery-plugin"
     ],
     "dependencies": {
-        "jquery": ">= 1.9.0",
-        "bootstrap": ">= 3.0.0"
+        "jquery": ">= 1.9.0"
     },
     "license": "MIT",
     "ignore": [

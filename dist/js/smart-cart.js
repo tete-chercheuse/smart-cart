@@ -1,13 +1,9 @@
 /*!
- * jQuery Smart Cart v3.0.1
+ * jQuery Smart Cart v3.0.2
  * The smart interactive jQuery Shopping Cart plugin with PayPal payment support
- * http://www.techlaboratory.net/smartcart
- *
- * Created by Dipu Raj
- * http://dipuraj.me
- *
+ * 
  * Licensed under the terms of the MIT License
- * https://github.com/techlab/SmartCart/blob/master/LICENSE
+ * https://github.com/tete-chercheuse/smart-cart/blob/master/LICENSE
  */
 
 ;(function ($, window, document, undefined) {
@@ -20,13 +16,20 @@
         theme: 'default', // theme for the cart, related css need to include for other than default theme
         combineProducts: true, // combine similar products on cart
         highlightEffect: true, // highlight effect on adding/updating product in cart
-        cartItemTemplate: '<img class="img-responsive pull-left" src="{product_image}" /><h4 class="list-group-item-heading">{product_name}</h4><p class="list-group-item-text">{product_desc}</p>',
-        cartItemQtyTemplate: '{display_price} × {display_quantity} = {display_amount}',
+        cartItemTemplate: '<td class="sc-cart-item-name"><h4>{product_name}</h4><p>{product_desc}</p></td><td class="sc-cart-item-price">{product_price}</td><td class="sc-cart-item-quantity">{product_quantity}</td><td class="sc-cart-item-amount">{product_total}</td>',
+        cartHeaderTemplate: '<th>Name</th><th>Price</th><th>Quantity</th><th>Total</th><th></th>',
         productContainerSelector: '.sc-product-item',
         productElementSelector: '*', // input, textarea, select, div, p
         addCartSelector: '.sc-add-to-cart',
+        transitionsDuration: 300,
+        quantityOptions: {
+            min: 0,
+            max: 10,
+            step: 5
+        },
         paramSettings: { // Map the paramters
             productPrice: 'product_price',
+            productTotal: 'product_total',
             productQuantity: 'product_quantity',
             productName: 'product_name',
             productId: 'product_id'
@@ -37,7 +40,7 @@
             clear: 'Clear',
             subtotal: 'Subtotal:',
             cartRemove: '×',
-            cartEmpty: 'Cart is Empty!<br />Choose your products'
+            cartEmpty: 'Cart is Empty'
         },
         submitSettings: {
             submitType: 'form', // form, paypal, ajax
@@ -49,8 +52,8 @@
             currencyOptions: {
                 style: 'currency',
                 currency: 'USD',
-                currencyDisplay: 'symbol'
-            } // extra settings for the currency formatter. Refer: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
+                currencyDisplay: 'symbol' // extra settings for the currency formatter. Refer: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
+            }
         },
         toolbarSettings: {
             showToolbar: true,
@@ -71,7 +74,7 @@
         // Cart array
         this.cart = [];
         // Cart element
-        this.cart_element = $(element);
+        this.cartElement = $(element);
         // Call initial method
         this.init();
     }
@@ -89,9 +92,9 @@
             this._setEvents();
 
             // Set initial products
-            var mi = this;
+            var self = this;
             $(this.options.cart).each(function (i, p) {
-                p = mi._addToCart(p);
+                p = self._addToCart(p);
             });
 
             // Call UI sync
@@ -105,11 +108,11 @@
         _setElements: function () {
             // The element store all cart data and submit with form
             var cartListElement = $('<input type="hidden" name="' + this.options.resultName + '" id="' + this.options.resultName + '" />');
-            this.cart_element.append(cartListElement);
+            this.cartElement.append(cartListElement);
             // Set the cart main element
-            this.cart_element.addClass('panel panel-default sc-cart sc-theme-' + this.options.theme);
-            this.cart_element.append('<div class="panel-heading sc-cart-heading">' + this.options.lang.cartTitle + ' <span class="sc-cart-count badge">0</span></div>');
-            this.cart_element.append('<div class="list-group sc-cart-item-list"></div>');
+            this.cartElement.addClass('sc-cart sc-theme-' + this.options.theme);
+            this.cartElement.append('<div class="sc-cart-heading">' + this.options.lang.cartTitle + ' <span class="sc-cart-count">0</span></div>');
+            this.cartElement.append('<table class="sc-cart-item-list"><thead>' + this.options.cartHeaderTemplate + '</thead><tbody></tbody></table>');
         },
         /* 
          * Set the toolbar for the cart 
@@ -119,9 +122,20 @@
                 return false;
             }
 
-            var toolbar = $('<div></div>').addClass('panel-footer sc-toolbar');
+            var toolbar = $('<div></div>').addClass('sc-toolbar');
             var toolbarButtonPanel = $('<div class="sc-cart-toolbar">');
             var toolbarSummaryPanel = $('<div class="sc-cart-summary">');
+
+            // Clear Button
+            if (this.options.toolbarSettings.showClearButton) {
+                var btnClear = $('<button class="sc-cart-clear" type="button">').text(this.options.lang.clear);
+                toolbarButtonPanel.append(btnClear);
+            }
+
+            // Add extra toolbar buttons
+            if (this.options.toolbarSettings.toolbarExtraButtons && this.options.toolbarSettings.toolbarExtraButtons.length > 0) {
+                toolbarButtonPanel.append(this.options.toolbarSettings.toolbarExtraButtons);
+            }
 
             // Checkout Button
             if (this.options.toolbarSettings.showCheckoutButton) {
@@ -134,21 +148,10 @@
                         btnCheckout = '<button class="sc-button-checkout-paypal sc-cart-checkout" type="submit"><img src="' + this.options.toolbarSettings.checkoutButtonImage + '" alt="Check out" /></button>';
                         break;
                     default:
-                        btnCheckout = '<button class="btn btn-info sc-cart-checkout" type="button">' + this.options.lang.checkout + '</button> ';
+                        btnCheckout = '<button class="sc-cart-checkout" type="button">' + this.options.lang.checkout + '</button> ';
                         break;
                 }
                 toolbarButtonPanel.append(btnCheckout);
-            }
-
-            // Clear Button
-            if (this.options.toolbarSettings.showClearButton) {
-                var btnClear = $('<button class="btn btn-danger sc-cart-clear" type="button">').text(this.options.lang.clear);
-                toolbarButtonPanel.append(btnClear);
-            }
-
-            // Add extra toolbar buttons
-            if (this.options.toolbarSettings.toolbarExtraButtons && this.options.toolbarSettings.toolbarExtraButtons.length > 0) {
-                toolbarButtonPanel.append(this.options.toolbarSettings.toolbarExtraButtons);
             }
 
             // Cart Summary
@@ -160,56 +163,112 @@
 
             toolbar.append(toolbarSummaryPanel);
             toolbar.append(toolbarButtonPanel);
-            this.cart_element.append(toolbar);
+            this.cartElement.append(toolbar);
         },
         /* 
          * Set events for the cart
          */
         _setEvents: function () {
-            var mi = this;
+            var self = this;
             // Capture add to cart button events
             $(this.options.addCartSelector).on("click", function (e) {
                 e.preventDefault();
-                var p = mi._getProductDetails($(this));
-                p = mi._addToCart(p);
-                $(this).parents(mi.options.productContainerSelector).addClass('sc-added-item').attr('data-product-unique-key', p.unique_key);
+                var p = self._getProductDetails($(this));
+                p = self._addToCart(p);
+                $(this).parents(self.options.productContainerSelector).addClass('sc-added-item').attr('data-product-unique-key', p.unique_key);
             });
 
             // Item remove event
-            $(this.cart_element).on("click", '.sc-cart-remove', function (e) {
+            $(this.cartElement).on("click", '.sc-cart-remove', function (e) {
                 e.preventDefault();
-                $(this).parents('.sc-cart-item').fadeOut("normal", function () {
-                    mi._removeFromCart($(this).data('unique-key'));
+                $(this).parents('.sc-cart-item').fadeOut(self.options.transitionsDuration, function () {
+                    self._removeFromCart($(this).data('unique-key'));
                     $(this).remove();
-                    mi._hasCartChange();
+                    self._hasCartChange();
                 });
             });
 
             // Item quantity change event
-            $(this.cart_element).on("change", '.sc-cart-item-qty', function (e) {
+            $(this.cartElement).on("change", '.sc-cart-item-qty', function (e) {
                 e.preventDefault();
-                mi._updateCartQuantity($(this).parents('.sc-cart-item').data('unique-key'), $(this).val());
+
+                var $input = $(e.currentTarget);
+                // Get values from input box
+                var step = $input.attr('step');
+                var stepOrig = step;
+                var new_qty = $input.val();
+                var max = $input.attr('max');
+                var min = $input.attr('min');
+
+                var multiplier = function (number) {
+                    var zeros = self._getDecimals(stepOrig);
+                    var mult = "1";
+                    for (var i = 0; i <= zeros; i++) mult = mult + "0";
+
+                    return parseInt(mult);
+                };
+
+                // Adjust default values if values are blank
+                if (min === '' || typeof min === 'undefined') {
+                    min = 1;
+                }
+
+                if (step === '' || typeof step === 'undefined') {
+                    step = 1;
+                }
+
+                // Max Value Validation
+                if (+new_qty > +max && max !== '') {
+                    new_qty = max;
+                }
+                // Min Value Validation
+                else if (+new_qty < +min && min !== '') {
+                        new_qty = min;
+                    }
+
+                // Calculate remainder
+                step = step * multiplier();
+                new_qty = new_qty * multiplier();
+                min = min * multiplier();
+                max = max * multiplier();
+
+                var rem = (new_qty - min) % step;
+
+                // Step Value Value Validation
+                if (rem !== 0) {
+                    new_qty = +new_qty + (+step - +rem);
+
+                    // Max Value Validation
+                    if (max > 0 && +new_qty > +max) {
+                        new_qty = +new_qty - +step;
+                    }
+                }
+
+                // Set the new value
+                $input.val((new_qty / multiplier()).toFixed(self._getDecimals(stepOrig)));
+
+                self._updateCartQuantity($(this).parents('.sc-cart-item').data('unique-key'), $input.val());
             });
 
             // Cart checkout event
-            $(this.cart_element).on("click", '.sc-cart-checkout', function (e) {
+            $(this.cartElement).on("click", '.sc-cart-checkout', function (e) {
                 if ($(this).hasClass('disabled')) {
                     return false;
                 }
                 e.preventDefault();
-                mi._submitCart();
+                self._submitCart();
             });
 
             // Cart clear event
-            $(this.cart_element).on("click", '.sc-cart-clear', function (e) {
+            $(this.cartElement).on("click", '.sc-cart-clear', function (e) {
                 if ($(this).hasClass('disabled')) {
                     return false;
                 }
                 e.preventDefault();
-                $('.sc-cart-item-list > .sc-cart-item', this.cart_element).fadeOut("normal", function () {
+                $('.sc-cart-item-list tbody > .sc-cart-item', this.cartElement).fadeOut(self.options.transitionsDuration, function () {
                     $(this).remove();
-                    mi._clearCart();
-                    mi._hasCartChange();
+                    self._clearCart();
+                    self._hasCartChange();
                 });
             });
         },
@@ -218,12 +277,12 @@
          * Product details will be return as an object
          */
         _getProductDetails: function (elm) {
-            var mi = this;
+            var self = this;
             var p = {};
             elm.parents(this.options.productContainerSelector).find(this.options.productElementSelector).each(function () {
                 if ($(this).is('[name]') === true || typeof $(this).data('name') !== typeof undefined) {
                     var key = $(this).attr('name') ? $(this).attr('name') : $(this).data('name');
-                    var val = mi._getContent($(this));
+                    var val = self._getContent($(this));
                     if (key && val) {
                         p[key] = val;
                     }
@@ -235,7 +294,7 @@
          * Add the product object to the cart
          */
         _addToCart: function (p) {
-            var mi = this;
+            var self = this;
 
             if (!p.hasOwnProperty(this.options.paramSettings.productPrice)) {
                 this._logError('Price is not set for the item');
@@ -253,23 +312,23 @@
 
             if (this.options.combineProducts) {
                 var pf = $.grep(this.cart, function (n, i) {
-                    return mi._isObjectsEqual(n, p);
+                    return self._isObjectsEqual(n, p);
                 });
                 if (pf.length > 0) {
                     var idx = this.cart.indexOf(pf[0]);
                     this.cart[idx][this.options.paramSettings.productQuantity] = this.cart[idx][this.options.paramSettings.productQuantity] - 0 + (p[this.options.paramSettings.productQuantity] - 0);
                     p = this.cart[idx];
                     // Trigger "itemUpdated" event
-                    this._triggerEvent("itemUpdated", [p]);
+                    this._triggerEvent("itemUpdated", [p, this.cart]);
                 } else {
                     this.cart.push(p);
                     // Trigger "itemAdded" event
-                    this._triggerEvent("itemAdded", [p]);
+                    this._triggerEvent("itemAdded", [p, this.cart]);
                 }
             } else {
                 this.cart.push(p);
                 // Trigger "itemAdded" event
-                this._triggerEvent("itemAdded", [p]);
+                this._triggerEvent("itemAdded", [p, this.cart]);
             }
 
             this._addUpdateCartItem(p);
@@ -279,16 +338,16 @@
          * Remove the product object from the cart
          */
         _removeFromCart: function (unique_key) {
-            var mi = this;
+            var self = this;
             $.each(this.cart, function (i, n) {
                 if (n.unique_key === unique_key) {
-                    var itemRemove = mi.cart[i];
-                    mi.cart.splice(i, 1);
+                    var itemRemove = self.cart[i];
+                    self.cart.splice(i, 1);
                     $('*[data-product-unique-key="' + unique_key + '"]').removeClass('sc-added-item');
-                    mi._hasCartChange();
+                    self._hasCartChange();
 
                     // Trigger "itemRemoved" event
-                    this._triggerEvent("itemRemoved", [itemRemove]);
+                    self._triggerEvent("itemRemoved", [itemRemove, self.cart]);
                     return false;
                 }
             });
@@ -306,16 +365,16 @@
          * Update the quantity of an item in the cart
          */
         _updateCartQuantity: function (unique_key, qty) {
-            var mi = this;
+            var self = this;
             var qv = this._getValidateNumber(qty);
             $.each(this.cart, function (i, n) {
                 if (n.unique_key === unique_key) {
                     if (qv) {
-                        mi.cart[i][mi.options.paramSettings.productQuantity] = qty;
+                        self.cart[i][self.options.paramSettings.productQuantity] = qty;
                     }
-                    mi._addUpdateCartItem(mi.cart[i]);
+                    self._addUpdateCartItem(self.cart[i]);
                     // Trigger "quantityUpdate" event
-                    this._triggerEvent("quantityUpdated", [mi.cart[i], qty]);
+                    self._triggerEvent("quantityUpdated", [self.cart[i], qty, self.cart]);
                     return false;
                 }
             });
@@ -325,23 +384,23 @@
          */
         _addUpdateCartItem: function (p) {
             var productAmount = (p[this.options.paramSettings.productQuantity] - 0) * (p[this.options.paramSettings.productPrice] - 0);
-            var cartList = $('.sc-cart-item-list', this.cart_element);
+            var cartList = $('.sc-cart-item-list tbody', this.cartElement);
             var elmMain = cartList.find("[data-unique-key='" + p.unique_key + "']");
             if (elmMain && elmMain.length > 0) {
                 elmMain.find(".sc-cart-item-qty").val(p[this.options.paramSettings.productQuantity]);
                 elmMain.find(".sc-cart-item-amount").text(this._getMoneyFormatted(productAmount));
             } else {
-                elmMain = $('<div></div>').addClass('sc-cart-item list-group-item');
-                elmMain.append('<button type="button" class="sc-cart-remove">' + this.options.lang.cartRemove + '</button>');
+                elmMain = $('<tr></tr>').addClass('sc-cart-item');
                 elmMain.attr('data-unique-key', p.unique_key);
 
-                elmMain.append(this._formatTemplate(this.options.cartItemTemplate, p));
+                var templateUpdated = this.options.cartItemTemplate.replace('{' + this.options.paramSettings.productPrice + '}', this._getMoneyFormatted(p[this.options.paramSettings.productPrice]));
 
-                var itemSummary = '<div class="sc-cart-item-summary"><span class="sc-cart-item-price">' + this._getMoneyFormatted(p[this.options.paramSettings.productPrice]) + '</span>';
-                itemSummary += ' × <input type="number" min="1" max="1000" class="sc-cart-item-qty" value="' + this._getValueOrEmpty(p[this.options.paramSettings.productQuantity]) + '" />';
-                itemSummary += ' = <span class="sc-cart-item-amount">' + this._getMoneyFormatted(productAmount) + '</span></div>';
+                templateUpdated = templateUpdated.replace('{' + this.options.paramSettings.productQuantity + '}', '<input type="number" min="' + this.options.quantityOptions.min + '" max="' + this.options.quantityOptions.max + '" step="' + this.options.quantityOptions.step + '" class="sc-cart-item-qty" value="' + this._getValueOrEmpty(p[this.options.paramSettings.productQuantity]) + '"/>');
 
-                elmMain.append(itemSummary);
+                templateUpdated = templateUpdated.replace('{' + this.options.paramSettings.productTotal + '}', this._getMoneyFormatted(productAmount));
+
+                elmMain.append(this._formatTemplate(templateUpdated, p));
+                elmMain.append('<td><button type="button" class="sc-cart-remove">' + this.options.lang.cartRemove + '</button></td>');
                 cartList.append(elmMain);
             }
 
@@ -359,33 +418,33 @@
          * Handles the changes in the cart 
          */
         _hasCartChange: function () {
-            $('.sc-cart-count', this.cart_element).text(this.cart.length);
+            $('.sc-cart-count', this.cartElement).text(this.cart.length);
             $('.sc-cart-subtotal', this.element).text(this._getCartSubtotal());
 
             if (this.cart.length === 0) {
-                $('.sc-cart-item-list', this.cart_element).empty().append($('<div class="sc-cart-empty-msg">' + this.options.lang.cartEmpty + '</div>'));
+                $('.sc-cart-item-list tbody', this.cartElement).empty().append($('<tr class="sc-cart-empty-msg"><td>' + this.options.lang.cartEmpty + '</td></tr>'));
                 $(this.options.productContainerSelector).removeClass('sc-added-item');
-                $('.sc-cart-checkout, .sc-cart-clear').addClass('disabled');
+                $('.sc-cart-checkout, .sc-cart-clear').addClass('disabled').attr('disabled', true);
 
                 // Trigger "cartEmpty" event
                 this._triggerEvent("cartEmpty");
             } else {
-                $('.sc-cart-item-list > .sc-cart-empty-msg', this.cart_element).remove();
-                $('.sc-cart-checkout, .sc-cart-clear').removeClass('disabled');
+                $('.sc-cart-item-list tbody > .sc-cart-empty-msg', this.cartElement).remove();
+                $('.sc-cart-checkout, .sc-cart-clear').removeClass('disabled').attr('disabled', false);
             }
 
             // Update cart value to the  cart hidden element 
-            $('#' + this.options.resultName, this.cart_element).val(JSON.stringify(this.cart));
+            $('#' + this.options.resultName, this.cartElement).val(JSON.stringify(this.cart));
         },
         /* 
          * Calculates the cart subtotal
          */
         _getCartSubtotal: function () {
-            var mi = this;
+            var self = this;
             var subtotal = 0;
             $.each(this.cart, function (i, p) {
-                if (mi._getValidateNumber(p[mi.options.paramSettings.productPrice])) {
-                    subtotal += (p[mi.options.paramSettings.productPrice] - 0) * (p[mi.options.paramSettings.productQuantity] - 0);
+                if (self._getValidateNumber(p[self.options.paramSettings.productPrice])) {
+                    subtotal += (p[self.options.paramSettings.productPrice] - 0) * (p[self.options.paramSettings.productQuantity] - 0);
                 }
             });
             return this._getMoneyFormatted(subtotal);
@@ -394,8 +453,8 @@
          * Cart submit functionalities
          */
         _submitCart: function () {
-            var mi = this;
-            var formElm = this.cart_element.parents('form');
+            var self = this;
+            var formElm = this.cartElement.parents('form');
             if (!formElm) {
                 this._logError('Form not found to submit');
                 return false;
@@ -410,16 +469,16 @@
                         type: "POST",
                         data: formElm.serialize(),
                         beforeSend: function () {
-                            mi.cart_element.addClass('loading');
+                            self.cartElement.addClass('loading');
                         },
                         error: function (jqXHR, status, message) {
-                            mi.cart_element.removeClass('loading');
-                            mi._logError(message);
+                            self.cartElement.removeClass('loading');
+                            self._logError(message);
                         },
                         success: function (res) {
-                            mi.cart_element.removeClass('loading');
-                            mi._triggerEvent("cartSubmitted", [mi.cart]);
-                            mi._clearCart();
+                            self.cartElement.removeClass('loading');
+                            self._triggerEvent("cartSubmitted", [self.cart]);
+                            self._clearCart();
                         }
                     }, this.options.submitSettings.ajaxSettings);
 
@@ -431,7 +490,7 @@
                     // Add paypal specific fields for cart products
                     $.each(this.cart, function (i, p) {
                         var itemNumber = i + 1;
-                        formElm.append('<input class="sc-paypal-input" name="item_number_' + itemNumber + '" value="' + mi._getValueOrEmpty(p[mi.options.paramSettings.productId]) + '" type="hidden">').append('<input class="sc-paypal-input" name="item_name_' + itemNumber + '" value="' + mi._getValueOrEmpty(p[mi.options.paramSettings.productName]) + '" type="hidden">').append('<input class="sc-paypal-input" name="amount_' + itemNumber + '" value="' + mi._getValueOrEmpty(p[mi.options.paramSettings.productPrice]) + '" type="hidden">').append('<input class="sc-paypal-input" name="quantity_' + itemNumber + '" value="' + mi._getValueOrEmpty(p[mi.options.paramSettings.productQuantity]) + '" type="hidden">');
+                        formElm.append('<input class="sc-paypal-input" name="item_number_' + itemNumber + '" value="' + self._getValueOrEmpty(p[self.options.paramSettings.productId]) + '" type="hidden">').append('<input class="sc-paypal-input" name="item_name_' + itemNumber + '" value="' + self._getValueOrEmpty(p[self.options.paramSettings.productName]) + '" type="hidden">').append('<input class="sc-paypal-input" name="amount_' + itemNumber + '" value="' + self._getValueOrEmpty(p[self.options.paramSettings.productPrice]) + '" type="hidden">').append('<input class="sc-paypal-input" name="quantity_' + itemNumber + '" value="' + self._getValueOrEmpty(p[self.options.paramSettings.productQuantity]) + '" type="hidden">');
                     });
 
                     formElm.submit();
@@ -507,6 +566,13 @@
             }
             return false;
         },
+        _getDecimals: function (num) {
+            var match = ('' + num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+            if (!match) {
+                return 0;
+            }
+            return Math.max(0, (match[1] ? match[1].length : 0) - (match[2] ? +match[2] : 0));
+        },
         /* 
          * Small templating function
          */
@@ -529,7 +595,7 @@
         _triggerEvent: function (name, params) {
             // Trigger an event
             var e = $.Event(name);
-            this.cart_element.trigger(e, params);
+            this.cartElement.trigger(e, params);
             if (e.isDefaultPrevented()) {
                 return false;
             }

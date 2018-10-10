@@ -1,33 +1,17 @@
 {
-  "name": "jquery-smartcart",
-  "version": "v3.0.1",
+  "name": "smart-cart",
+  "version": "3.0.2",
   "description": "The smart interactive jQuery Shopping Cart plugin with PayPal payment support",
-  "homepage": "http://techlaboratory.net/smartcart",
   "license": "MIT",
-  "author": "Dipu Raj <hello@techlaboratory.net>",
-  "contributors": [
-    {
-      "name": "Dipu Raj",
-      "email": "hello@techlaboratory.net"
-    }
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://techlab@github.com/techlab/SmartCart.git"
-  },
-  "bugs": {
-    "url": "https://github.com/techlab/SmartCart/issues"
-  },
   "keywords": [
     "jquery",
     "cart",
     "paypal",
     "shopping",
-    "bootstrap",
     "ui",
     "jquery-plugin"
   ],
-  "main": "",
+  "main": "./dist/js/smart-cart.js",
   "scripts": {
     "start": "",
     "test": "./node_modules/.bin/karma start --single-run --browsers PhantomJS",
@@ -36,11 +20,11 @@
     "lint": "gulp lint"
   },
   "dependencies": {
-    "jquery": ">=1.9.0",
-    "bootstrap": ">=3.0.0"
+    "jquery": ">=1.9.0"
   },
   "devDependencies": {
     "autoprefixer": "^6.7.7",
+    "browser-sync": "^2.11.0",
     "del": "^2.2.2",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
