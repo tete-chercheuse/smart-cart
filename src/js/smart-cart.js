@@ -24,15 +24,18 @@
         transitionsDuration:      300,
         quantityOptions:          {
             min:  0,
-            max:  10,
-            step: 5
+            max:  1000,
+            step: 1
         },
         paramSettings:            { // Map the paramters
-            productPrice:    'product_price',
-            productTotal:    'product_total',
-            productQuantity: 'product_quantity',
-            productName:     'product_name',
-            productId:       'product_id'
+            productPrice:        'product_price',
+            productTotal:        'product_total',
+            productQuantity:     'product_quantity',
+            productQuantityMin:  'product_quantity_min',
+            productQuantityMax:  'product_quantity_max',
+            productQuantityStep: 'product_quantity_step',
+            productName:         'product_name',
+            productId:           'product_id'
         },
         lang:                     { // Language variables
             cartTitle:  "Shopping Cart",
@@ -386,8 +389,10 @@
          */
         _addUpdateCartItem:  function(p) {
             var productAmount = (p[this.options.paramSettings.productQuantity] - 0) * (p[this.options.paramSettings.productPrice] - 0);
+
             var cartList = $('.sc-cart-item-list tbody', this.cartElement);
             var elmMain = cartList.find("[data-unique-key='" + p.unique_key + "']");
+
             if(elmMain && elmMain.length > 0) {
                 elmMain.find(".sc-cart-item-qty").val(p[this.options.paramSettings.productQuantity]);
                 elmMain.find(".sc-cart-item-amount").text(this._getMoneyFormatted(productAmount));
@@ -396,9 +401,12 @@
                 elmMain = $('<tr></tr>').addClass('sc-cart-item');
                 elmMain.attr('data-unique-key', p.unique_key);
 
+                var min = (typeof p[this.options.paramSettings.productQuantityMin] !== "undefined") ? p[this.options.paramSettings.productQuantityMin] : this.options.quantityOptions.min;
+                var max = (typeof p[this.options.paramSettings.productQuantityMax] !== "undefined") ? p[this.options.paramSettings.productQuantityMax] : this.options.quantityOptions.max;
+                var step = (typeof p[this.options.paramSettings.productQuantityStep] !== "undefined") ? p[this.options.paramSettings.productQuantityStep] : this.options.quantityOptions.step;
                 var templateUpdated = this.options.cartItemTemplate.replace('{' + this.options.paramSettings.productPrice + '}', this._getMoneyFormatted(p[this.options.paramSettings.productPrice]));
 
-                templateUpdated = templateUpdated.replace('{' + this.options.paramSettings.productQuantity + '}', '<input type="number" min="' + this.options.quantityOptions.min + '" max="' + this.options.quantityOptions.max + '" step="' + this.options.quantityOptions.step + '" class="sc-cart-item-qty" value="' + this._getValueOrEmpty(p[this.options.paramSettings.productQuantity]) + '"/>');
+                templateUpdated = templateUpdated.replace('{' + this.options.paramSettings.productQuantity + '}', '<input type="number" min="' + min + '" max="' + max + '" step="' + step + '" class="sc-cart-item-qty" value="' + this._getValueOrEmpty(p[this.options.paramSettings.productQuantity]) + '"/>');
 
                 templateUpdated = templateUpdated.replace('{' + this.options.paramSettings.productTotal + '}', this._getMoneyFormatted(productAmount));
 

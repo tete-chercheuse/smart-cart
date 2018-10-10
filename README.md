@@ -72,46 +72,49 @@ var defaults = {
     addCartSelector:          '.sc-add-to-cart',
     transitionsDuration:      300,
     quantityOptions:          {
-        min:  0,
-        max:  10,
-        step: 5
+       min:  0,
+       max:  1000,
+       step: 1
     },
     paramSettings:            { // Map the paramters
-        productPrice:    'product_price',
-        productTotal:    'product_total',
-        productQuantity: 'product_quantity',
-        productName:     'product_name',
-        productId:       'product_id'
+       productPrice:        'product_price',
+       productTotal:        'product_total',
+       productQuantity:     'product_quantity',
+       productQuantityMin:  'product_quantity_min',
+       productQuantityMax:  'product_quantity_max',
+       productQuantityStep: 'product_quantity_step',
+       productName:         'product_name',
+       productId:           'product_id'
     },
     lang:                     { // Language variables
-        cartTitle:  "Shopping Cart",
-        checkout:   'Checkout',
-        clear:      'Clear',
-        subtotal:   'Subtotal:',
-        cartRemove: '×',
-        cartEmpty:  'Cart is Empty'
+       cartTitle:  "Shopping Cart",
+       checkout:   'Checkout',
+       clear:      'Clear',
+       subtotal:   'Subtotal:',
+       cartRemove: '×',
+       cartEmpty:  'Cart is Empty'
     },
     submitSettings:           {
-        submitType:   'form', // form, paypal, ajax
-        ajaxURL:      '', // Ajax submit URL
-        ajaxSettings: {} // Ajax extra settings for submit call
+       submitType:   'form', // form, paypal, ajax
+       ajaxURL:      '', // Ajax submit URL
+       ajaxSettings: {} // Ajax extra settings for submit call
     },
     currencySettings:         {
-        locales:         'en-US', // A string with a BCP 47 language tag, or an array of such strings
-        currencyOptions: {
-            style:           'currency',
-            currency:        'USD',
-            currencyDisplay: 'symbol' // extra settings for the currency formatter. Refer: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
-        }
+       locales:         'en-US', // A string with a BCP 47 language tag, or an array of such strings
+       currencyOptions: {
+           style:           'currency',
+           currency:        'USD',
+           currencyDisplay: 'symbol' // extra settings for the currency formatter. Refer: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
+       }
     },
     toolbarSettings:          {
-        showToolbar:         true,
-        showCheckoutButton:  true,
-        showClearButton:     true,
-        showCartSummary:     true,
-        checkoutButtonStyle: 'default', // default, paypal, image
-        checkoutButtonImage: '', // image for the checkout button
-        toolbarExtraButtons: [] // Extra buttons to show on toolbar, array of jQuery input/buttons elements
+       showToolbar:         true,
+       showCheckoutButton:  true,
+       showClearButton:     true,
+       showCartSummary:     true,
+       checkoutButtonStyle: 'default', // default, paypal, image
+       checkoutButtonImage: '', // image for the checkout button
+       toolbarExtraButtons: [] // Extra buttons to show on toolbar, array of jQuery input/buttons elements
     },
     debug:                    false
 };
