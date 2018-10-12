@@ -1,5 +1,5 @@
 /*!
- * jQuery Smart Cart v3.0.3
+ * jQuery Smart Cart v3.0.4
  * The smart interactive jQuery Shopping Cart plugin with PayPal payment support
  * 
  * Licensed under the terms of the MIT License
@@ -192,7 +192,7 @@
             });
 
             // Item quantity change event
-            $(this.cartElement).on("change", '.sc-cart-item-qty', function (e) {
+            $(this.cartElement).on("change input", '.sc-cart-item-qty', function (e) {
                 e.preventDefault();
 
                 var $input = $(e.currentTarget);
