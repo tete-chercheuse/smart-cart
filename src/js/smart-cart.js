@@ -251,8 +251,8 @@
                 $input.val((new_qty / multiplier()).toFixed(self._getDecimals(stepOrig)));
 
                 self._updateCartQuantity($(this).parents('.sc-cart-item').data('unique-key'), $input.val());
-            }); 
-            
+            });
+
             $(this.cartElement).on("change select", '.sc-cart-item-qty', function(e) {
                 var $input = $(e.currentTarget);
                 self._updateCartQuantity($(this).parents('.sc-cart-item').data('unique-key'), $input.val());
@@ -398,11 +398,7 @@
             var cartList = $('.sc-cart-item-list tbody', this.cartElement);
             var elmMain = cartList.find("[data-unique-key='" + p.unique_key + "']");
 
-            if(elmMain && elmMain.length > 0) {
-                elmMain.find(".sc-cart-item-qty").val(p[this.options.paramSettings.productQuantity]);
-                elmMain.find(".sc-cart-item-amount").text(this._getMoneyFormatted(productAmount));
-            }
-            else {
+            if(!elmMain || elmMain.length === 0) {
                 elmMain = $('<tr></tr>').addClass('sc-cart-item');
                 elmMain.attr('data-unique-key', p.unique_key);
 
@@ -410,23 +406,27 @@
                 var max = (typeof p[this.options.paramSettings.productQuantityMax] !== "undefined") ? p[this.options.paramSettings.productQuantityMax] : this.options.quantityOptions.max;
                 var step = (typeof p[this.options.paramSettings.productQuantityStep] !== "undefined") ? p[this.options.paramSettings.productQuantityStep] : this.options.quantityOptions.step;
                 var templateUpdated = this.options.cartItemTemplate.replace('{' + this.options.paramSettings.productPrice + '}', this._getMoneyFormatted(p[this.options.paramSettings.productPrice]));
-                
+
                 var quantitySelect = $('<select class="sc-cart-item-qty"></select>');
                 var value = this._getValueOrEmpty(p[this.options.paramSettings.productQuantity]);
-                
-                for(var i = 0; i <= 100; i++) {
-                    var stepValue = step * i;
-                    quantitySelect.append('<option value="'+ stepValue +'"' + (stepValue === value) ? ' selected' : '' + '>'+ stepValue +'</option>');
-                } 
 
-                templateUpdated = templateUpdated.replace('{' + this.options.paramSettings.productQuantity + '}', quantitySelect.html());
+                for(var i = 1; i <= 100; i++) {
+                    var stepValue = step * i;
+                    quantitySelect.append('<option value="' + stepValue + '">' + stepValue + '</option>');
+                }
+
+                templateUpdated = templateUpdated.replace('{' + this.options.paramSettings.productQuantity + '}', quantitySelect.prop('outerHTML'));
 
                 templateUpdated = templateUpdated.replace('{' + this.options.paramSettings.productTotal + '}', this._getMoneyFormatted(productAmount));
 
                 elmMain.append(this._formatTemplate(templateUpdated, p));
                 elmMain.append('<td><button type="button" class="sc-cart-remove">' + this.options.lang.cartRemove + '</button></td>');
+
                 cartList.append(elmMain);
             }
+
+            elmMain.find(".sc-cart-item-qty").val(p[this.options.paramSettings.productQuantity]);
+            elmMain.find(".sc-cart-item-amount").text(this._getMoneyFormatted(productAmount));
 
             // Apply the highlight effect
             if(this.options.highlightEffect === true) {
