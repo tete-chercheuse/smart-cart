@@ -251,6 +251,11 @@
                 $input.val((new_qty / multiplier()).toFixed(self._getDecimals(stepOrig)));
 
                 self._updateCartQuantity($(this).parents('.sc-cart-item').data('unique-key'), $input.val());
+            }); 
+            
+            $(this.cartElement).on("change select", '.sc-cart-item-qty', function(e) {
+                var $input = $(e.currentTarget);
+                self._updateCartQuantity($(this).parents('.sc-cart-item').data('unique-key'), $input.val());
             });
 
             // Cart checkout event
@@ -405,8 +410,16 @@
                 var max = (typeof p[this.options.paramSettings.productQuantityMax] !== "undefined") ? p[this.options.paramSettings.productQuantityMax] : this.options.quantityOptions.max;
                 var step = (typeof p[this.options.paramSettings.productQuantityStep] !== "undefined") ? p[this.options.paramSettings.productQuantityStep] : this.options.quantityOptions.step;
                 var templateUpdated = this.options.cartItemTemplate.replace('{' + this.options.paramSettings.productPrice + '}', this._getMoneyFormatted(p[this.options.paramSettings.productPrice]));
+                
+                var quantitySelect = $('<select class="sc-cart-item-qty"></select>');
+                var value = this._getValueOrEmpty(p[this.options.paramSettings.productQuantity]);
+                
+                for(var i = 0; i <= 100; i++) {
+                    var stepValue = step * i;
+                    quantitySelect.append('<option value="'+ stepValue +'"' + (stepValue === value) ? ' selected' : '' + '>'+ stepValue +'</option>');
+                } 
 
-                templateUpdated = templateUpdated.replace('{' + this.options.paramSettings.productQuantity + '}', '<input type="number" min="' + min + '" max="' + max + '" step="' + step + '" class="sc-cart-item-qty" value="' + this._getValueOrEmpty(p[this.options.paramSettings.productQuantity]) + '"/>');
+                templateUpdated = templateUpdated.replace('{' + this.options.paramSettings.productQuantity + '}', quantitySelect.html());
 
                 templateUpdated = templateUpdated.replace('{' + this.options.paramSettings.productTotal + '}', this._getMoneyFormatted(productAmount));
 

@@ -82,7 +82,7 @@ gulp.task('test', function(done) {
 gulp.task('browser-sync', ['watch'], function() {
     browserSync.init({
         server: {
-            baseDir: "./"
+            baseDir: "./examples/"
         }
     });
 
