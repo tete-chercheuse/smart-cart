@@ -1,6 +1,6 @@
 {
     "name": "smart-cart",
-    "version": "3.0.4",
+    "version": "3.0.6",
     "description": "The smart interactive jQuery Shopping Cart plugin with PayPal payment support",
     "main": "./dist/js/smart-cart.js",
     "keywords": [
