@@ -94,6 +94,11 @@ var defaults = {
        cartRemove: '×',
        cartEmpty:  'Cart is Empty'
     },
+    storageSettings:          {
+        persistentCart: false, // Make cart persistent. Notice: If the given 'storageApi'-object is broken, the persistent cart is disabled.
+        storageApi:     localStorage, // Storage object: localStorage, sessionStorage or custom object implementing Web Storage API.
+        storageKey:     'cart_list'
+    },
     submitSettings:           {
        submitType:   'form', // form, paypal, ajax
        ajaxURL:      '', // Ajax submit URL
